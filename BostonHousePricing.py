@@ -22,15 +22,67 @@ description=str(boston.DESCR)
 data=pd.DataFrame(data=boston.data,columns=boston.feature_names)
 data['price']=boston.target
 
+###################################
+##################################
+#------UNDERSTANDING THE DATA --------
 
+data.info()
+data.isna().sum()
+#######################################
+######################################
+#----------DATA VISUALISATION------------
+sns.pairplot(data)
+#----DATA DISTRIBUTION ---------
+#Plotting the data distrubution in 2 rows and 7 columns
+rows=2
+cols=7
+fig,ax=plt.subplots(nrows=rows,ncols=cols,figsize=(20,5))
+index=0
+columns=data.columns
+for i in range(rows):
+    for j in range(cols):
+        sns.distplot(data[columns[index]],ax=ax[i][j])
+        index+=1
+plt.tight_layout()
+
+#######################
+
+fig,ax=plt.subplots(figsize=(20,10))
+sns.heatmap(data.corr(),annot=True,annot_kws={'size':4})
+
+
+#Cleaning data based on distribution
+data=data.drop(['CRIM','ZN','CHAS','B'],axis=1)
+cormat=data.corr()
+ 
+def getCorrolatedFeatures(corrdata,corrvalue):
+    features=[]
+    values=[]
+    for i, index in enumerate(corrdata.index): #(indexCol ,nameCol)
+        if (abs(corrdata[index])>corrvalue):
+            features.append(index)
+            values.append(corrdata[index])
+    df=pd.DataFrame(data=values,index=features,columns=['Corr Value'])
+    return df
+
+
+############################################
+############################################
+
+corrvalue=0.2
+corrData=getCorrolatedFeatures(cormat['price'],corrvalue)
+corrolated_data=data[corrData.index]
+sns.pairplot(corrolated_data)
+fig,ax=plt.subplots(figsize=(20,10))
+sns.heatmap(corrolated_data.corr(),annot=True)
 
 
 ##################################
 #################################
 #Shuffle and Splitting data 
 
-X=data.drop('price',axis=1).values
-y=data['price'].values
+X=corrolated_data.drop('price',axis=1).values
+y=corrolated_data['price'].values
 X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=0)
 
 
